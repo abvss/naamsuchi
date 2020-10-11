@@ -1,13 +1,8 @@
 package in.abvss.naamsuchi.controller;
 
 import in.abvss.naamsuchi.exception.AppException;
-import in.abvss.naamsuchi.model.Role;
-import in.abvss.naamsuchi.model.RoleName;
-import in.abvss.naamsuchi.model.User;
-import in.abvss.naamsuchi.payload.ApiResponse;
-import in.abvss.naamsuchi.payload.JwtAuthenticationResponse;
-import in.abvss.naamsuchi.payload.LoginRequest;
-import in.abvss.naamsuchi.payload.SignUpRequest;
+import in.abvss.naamsuchi.model.*;
+import in.abvss.naamsuchi.payload.*;
 import in.abvss.naamsuchi.repository.RoleRepository;
 import in.abvss.naamsuchi.repository.UserRepository;
 import in.abvss.naamsuchi.security.JwtTokenProvider;
@@ -82,7 +77,7 @@ public class AuthController {
         }
 
         // Creating user's account
-        User user = new User(signUpRequest.getName(), signUpRequest.getUsername(),
+        User user = new User(signUpRequest.getUsername(),
                 signUpRequest.getEmail(), signUpRequest.getPassword());
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -100,4 +95,43 @@ public class AuthController {
 
         return ResponseEntity.created(location).body(new ApiResponse(true, "User registered successfully"));
     }
+
+    @PostMapping("/registration")
+    public ResponseEntity<?> registerUser1(@Valid @RequestBody RegistrationRequest registrationRequest) {
+
+        // Creating user's account
+
+        UserDetail userDetail = getUserDetail(registrationRequest);
+
+        String userName = "";
+        String password = "";
+
+        User user = new User((registrationRequest.getFirstName() + registrationRequest.getFatherLastName().toLowerCase()),
+                registrationRequest.getEmail(), password);
+
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
+                .orElseThrow(() -> new AppException("User Role not set."));
+
+        user.setRoles(Collections.singleton(userRole));
+
+        User result = userRepository.save(user);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentContextPath().path("/users/{username}")
+                .buildAndExpand(result.getUsername()).toUri();
+
+        return ResponseEntity.created(location).body(new ApiResponse(true, "User registered successfully"));
+
+    }
+
+    private UserDetail getUserDetail(RegistrationRequest registrationRequest) {
+    UserDetail userDetail = new UserDetail();
+
+
+
+    return userDetail;
+    }
+
 }
